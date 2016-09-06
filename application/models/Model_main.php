@@ -3,13 +3,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Model_main extends CI_Model {
     
-    public function get_books() {
-        $query = $this->db->query("SELECT  `b`.`name` ,  `b`.`id` ,  `b`.`date` ,  `a`.`name` AS  `author` 
-FROM  `books` AS  `b` 
-JOIN  `authors` AS  `a` ON  `b`.`author` =  `a`.`id` ");
+    public function get_books($id = 0) {
+        $where = ($id < 1) ? null : " WHERE `id` = '".$id."'";
+        $query = $this->db->query("SELECT `id`,`name`,`date` FROM `book`".$where);
+        
+        if($query->num_rows() < 1)
+            return FALSE;
+        
+        $rows = $query->result_array();
+        for($i = 0; $i < sizeof($rows); $i++)
+        {
+            $sub_query = $this->db->query("SELECT  `t2`.`id`, `t2`.`name` 
+                                           FROM  `books` AS  `t1` 
+                                           JOIN  `authors` AS  `t2` ON  `t2`.`id` =  `t1`.`author` 
+                                           WHERE  `t1`.`book` = '".$rows[$i]['id']."'");
+            
+            if($sub_query->num_rows() < 1)
+                return FALSE;
+            
+            $rows[$i]['authors'] = $sub_query->result_array();
+        }
+        
         //Выборка книг + подключение справочника authors и выборка из него нужного автора
         //Если записей нет, возвращаем булевую FALSE
-        return ($query->num_rows() < 1) ? FALSE : $query->result_array();
+        return $rows;
     }
     
     public function get_authors() {
@@ -23,20 +40,13 @@ JOIN  `authors` AS  `a` ON  `b`.`author` =  `a`.`id` ");
         if(!$id)
             return FALSE;
         //Удаляем книгу с указанным ID
-        return $this->db->simple_query("DELETE FROM `books` WHERE `id` = '".$id."'");
+        if($this->db->simple_query("DELETE FROM `book` WHERE `id` = '".$id."'"))
+            return $this->db->simple_query("DELETE FROM `books` WHERE `book` = '".$id."'");
     }
     
     public function get_book($id)
     {
-        //Выбираем поля имя, автор, id(да-да, это может быть странно..) и выбираем по id
-        $this->db->select("name, author, id");
-        $this->db->where("id", $id);
-        $query = $this->db->get("books");
-        if($query->num_rows() < 1)
-            return FALSE;
-        
-        //т.к. массив разбит на записи. в отдельных индаксах. заведем еще одну переменную
-        $buff = $query->result_array();
+        $buff = $this->get_books($id);
         return $buff[0];
     }
     
@@ -44,21 +54,46 @@ JOIN  `authors` AS  `a` ON  `b`.`author` =  `a`.`id` ");
     {
         //Вставка в бд новую книгу
         $data = array("name" => $this->input->post('bookname'),
-                      "author" => $this->input->post('author'),
                       "date" => microtime(TRUE));
-        return $this->db->insert('books', $data);
+        
+        if(!$this->db->insert('book', $data))
+            return FALSE;
+        
+        $book = $this->db->insert_id();
+        $data2 = array();
+        foreach($this->input->post('author') as $author) {
+            
+            $data2 = array("book" => $book,
+                           "author" => $author);
+            
+            $this->db->insert('books', $data2);
+        }
     }
     
     public function edit_book($id)
     {
         //Вставка в бд новую книгу
         $data = array("name" => $this->input->post('bookname'),
-                      "author" => $this->input->post('author'));
+                      "date" => microtime(TRUE));
         
-        //По ID
         $this->db->where('id', $id);
         
-        return $this->db->update('books', $data);
+        if(!$this->db->update('book', $data))
+            return FALSE;
+        
+        $data2 = array();
+        
+        
+        $this->db->simple_query("DELETE FROM `books` WHERE `book` = '".$id."'");
+        
+        foreach($this->input->post('author') as $author) {
+            
+            $data2 = array("book" => $id,
+                           "author" => $author);
+            
+            $this->db->insert('books', $data2);
+            
+        }
     }
     
     public function truncate() {
