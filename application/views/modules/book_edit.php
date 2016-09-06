@@ -10,12 +10,14 @@
   <div class="form-group">
     <label class="col-sm-3 control-label">Автор</label>
     <div class="col-sm-9">
-      <select class="form-control" name="author" id="authors">
+      <select class="form-control" name="author[]" id="authors" multiple>
           <? if($authors):
              foreach($authors as $author):?>
-          <option value="<? echo $author['id'];?>"<? if($author['id'] == $book['author']) echo' selected="selected"';?>><? echo $author['name'];?></option>
+          <option value="<? echo $author['id'];?>" <? foreach($book['authors'] as $book_author): if($author['id'] == $book_author['id']) echo' selected="selected"'; endforeach;?>><? echo $author['name'];?></option>
          <? endforeach;
             endif;?>
+      </select>
+      
       </select>
       <?php echo form_error('author'); ?>
       <span class="pull-right" style="margin-top: 5px;"><a href="#" id="addLink">Добавить автора</a></span>

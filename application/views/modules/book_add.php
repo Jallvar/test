@@ -10,7 +10,7 @@
   <div class="form-group">
     <label class="col-sm-3 control-label">Автор</label>
     <div class="col-sm-9">
-      <select class="form-control" name="author" id="authors">
+      <select class="form-control" name="author[]" id="authors" multiple>
           <? if($authors):
              foreach($authors as $author):?>
           <option value="<? echo $author['id'];?>"><? echo $author['name'];?></option>
