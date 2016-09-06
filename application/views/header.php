@@ -7,6 +7,7 @@
 
     <title>Каталог книг</title>
     <link href="<? echo base_url();?>css/bootstrap.min.css" rel="stylesheet">
+    <link href="<? echo base_url();?>css/chosen.min.css" rel="stylesheet">
     
   </head>
 
