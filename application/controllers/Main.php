@@ -31,7 +31,6 @@ class Main extends CI_Controller {
         //Библиотека для проверки форм и установка правил
         $this->load->library('form_validation');
         $this->form_validation->set_rules('bookname', 'Название книги', 'required|min_length[4]');
-        $this->form_validation->set_rules('author', 'Автор', 'required');
         
         //Если форма не отправлена или входящие данные не подходят по правилам
         //Выводим форму и сообщение об ошибке (если требуется)
@@ -63,7 +62,6 @@ class Main extends CI_Controller {
         
         $this->load->library('form_validation');
         $this->form_validation->set_rules('bookname', 'Название книги', 'required|min_length[4]');
-        $this->form_validation->set_rules('author', 'Автор', 'required');
         
         if ($this->form_validation->run() == FALSE)
         {
@@ -81,5 +79,6 @@ class Main extends CI_Controller {
         $this->Model_main->truncate();
         redirect(base_url());
     }
+    
     
 }
